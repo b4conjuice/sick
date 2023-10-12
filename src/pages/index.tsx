@@ -21,14 +21,31 @@ export default function Home(
   return (
     <Layout>
       <Main className='flex flex-col p-4'>
-        <div className='flex flex-grow flex-col items-center space-y-4'>
+        <div className='flex flex-grow flex-col space-y-4'>
           <ul className='space-y-4'>
-            {props?.picks.map((pick, index) => (
-              <li key={pick}>
-                {format(dates.at(-1 * (index + 1)) ?? startDate, 'M.d.yy')}
-                <div className='text-2xl'>{pick}</div>
-              </li>
-            ))}
+            {props?.picks.map((pick, index) => {
+              const text = typeof pick === 'string' ? pick : pick?.text
+              const url = typeof pick === 'string' ? null : pick?.url
+              return (
+                <li key={index}>
+                  {format(dates.at(-1 * (index + 1)) ?? startDate, 'M.d.yy')}
+                  <div className='text-2xl'>
+                    {url ? (
+                      <a
+                        className='text-cb-pink hover:underline'
+                        href={url}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {text}
+                      </a>
+                    ) : (
+                      text
+                    )}
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         </div>
       </Main>
@@ -40,7 +57,15 @@ export const getStaticProps = async () => {
   const data: Content = await fetchContent()
   return {
     props: {
-      picks: data.list,
+      picks: data.list.map(item => {
+        const [text, url] = item.split('\t')
+        if (url)
+          return {
+            url,
+            text,
+          }
+        else return text
+      }),
     },
     revalidate: 1,
   }
